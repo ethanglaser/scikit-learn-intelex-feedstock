@@ -3,7 +3,7 @@
 {% set name = "scikit-learn-intelex" %}
 {% set buildnumber = 0 %}
 # version is set manually in feedstocks and through git tag in repo
-{% set version = "2025.10.1" %}
+{% set version = "2025.11.0" %}
 
 package:
   name: {{ name|lower }}
@@ -13,10 +13,7 @@ package:
 # Reminder: source should point to path for repo or github archive for feedstock
 source:
   url: https://github.com/uxlfoundation/scikit-learn-intelex/archive/{{ version }}.tar.gz
-  sha256: 25a4dc3f83fe48d88a59133e57007584b3115cff97a2caab7e8be3c5c608763c
-  patches:
-  - patches/0004-accidental-bad-tests.patch
-  - patches/0005-skip-memleak-random-fails.patch
+  sha256: 5d7217dd786f21cea41f5b6b369f57ec762b52edcfb73c72efbdfa02d54524d0
 # source:
 #   path: ..
 
@@ -48,15 +45,13 @@ requirements:
     - pybind11
     - numpy
     # dal-devel pinning depends on the recipe location (repo or feedstock)
-    # - dal-devel
-    - dal-devel ==2025.10.0
+    - dal-devel =={{ version }}
     - impi-devel  # [not win]
     - mpi * impi  # [not win]
   run:
     - python
     - numpy
-    - scikit-learn
-    - scikit-learn  <1.6  # [py<=39]
+    - scikit-learn >=1.0
     # dal-devel has run_exports on conda-forge, so no need to add it.
     - mpi * impi  # [not win]
     - packaging  # [py>=313]
@@ -78,11 +73,8 @@ test:
     - xgboost
     - lightgbm
     - treelite
-    # TODO: re-enable shap once they have py314 support and once they sort
-    # out their issues with numba version pinnings
-    # - shap
-    # TODO: re-enable once their py314 builds work correctly
-    - catboost  # [py<=313]
+    - shap
+    - catboost
     - array-api-compat
     - array-api-strict
     - array-api-strict <2.4  # [py<312]

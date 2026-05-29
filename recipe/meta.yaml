@@ -33,7 +33,7 @@ build:
 requirements:
   build:
     - make  # [linux]
-    - {{ compiler('dpcpp') }}  # [linux64]
+    - {{ compiler('dpcpp') }}
     - {{ compiler('cxx') }}
     - {{ stdlib("c") }}
   host:
@@ -55,13 +55,13 @@ outputs:
     build:
       # Suppress dpcpp run_exports so CPU package doesn't pull intel-sycl-rt.
       ignore_run_exports_from:
-        - {{ compiler('dpcpp') }}  # [linux64]
+        - {{ compiler('dpcpp') }}
     script: pack.sh  # [linux]
     script: pack.bat  # [win]
     requirements:
       build:
         - make  # [linux]
-        - {{ compiler('dpcpp') }}  # [linux64]
+        - {{ compiler('dpcpp') }}
         - {{ compiler('cxx') }}
         - {{ stdlib("c") }}
       host:

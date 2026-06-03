@@ -74,7 +74,8 @@ outputs:
       run:
         - python
         - numpy
-        - scikit-learn >=1.0
+        # <1.9 cap is temporary: 2026.0 predates sklearn 1.9 support. Remove for 2026.1.
+        - scikit-learn >=1.0,<1.9
         # dal-devel has run_exports on conda-forge, so no need to add it.
         - mpi * impi  # [not win]
         - packaging  # [py>=313]

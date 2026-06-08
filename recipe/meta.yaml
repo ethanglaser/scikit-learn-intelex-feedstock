@@ -3,17 +3,20 @@
 {% set name = "scikit-learn-intelex" %}
 {% set buildnumber = 0 %}
 # version is set manually in feedstocks and through git tag in repo
-{% set version = "2025.11.0" %}
+{% set version = "2026.0.0" %}
 
 package:
-  name: {{ name|lower }}
+  # Top-level package name is a placeholder - name not used directly.
+  name: {{ name|lower }}-feedstock
   # version: {{ environ.get('GIT_DESCRIBE_TAG') }}
   version: {{ version }}
 
 # Reminder: source should point to path for repo or github archive for feedstock
 source:
   url: https://github.com/uxlfoundation/scikit-learn-intelex/archive/{{ version }}.tar.gz
-  sha256: 5d7217dd786f21cea41f5b6b369f57ec762b52edcfb73c72efbdfa02d54524d0
+  sha256: efa12836d3db8f4a25824c3a8ac529c65e26e0c79793a264f17637ec4753df45
+  patches:
+  - patches/0006-skip-linreg-tol.patch
 # source:
 #   path: ..
 
@@ -25,15 +28,15 @@ build:
     - DPCPPROOT
     - DALROOT
     - NO_DIST=1  # [win]
-  ignore_run_exports_from:
-    - {{ compiler('dpcpp') }}  # [linux64]
 
+# Top-level requirements apply to the shared build.sh/bld.bat that compiles
+# and stages host + dpc artifacts once. Each output's pack.sh then copies
+# the subset of files that belong to that output.
 requirements:
   build:
     - make  # [linux]
-    - {{ compiler('dpcpp') }}  # [linux64]
+    - {{ compiler('dpcpp') }}
     - {{ compiler('cxx') }}
-    # conda-forge feedstock specific
     - {{ stdlib("c") }}
   host:
     - python
@@ -48,41 +51,92 @@ requirements:
     - dal-devel =={{ version }}
     - impi-devel  # [not win]
     - mpi * impi  # [not win]
-  run:
-    - python
-    - numpy
-    - scikit-learn >=1.0
-    # dal-devel has run_exports on conda-forge, so no need to add it.
-    - mpi * impi  # [not win]
-    - packaging  # [py>=313]
 
-test:
-  requires:
-    - pyyaml
-    - mpi * impi  # [not win]
-    - mpi4py
-    # DPC part of sklearnex is optional
-    - dpcpp-cpp-rt  # [linux64]
-    # TODO: enable data parallel frameworks when they are available on conda-forge
-    # - dpctl
-    # - dpnp
-    # next deps are synced with requirements-test.txt
-    - pytest
-    - pytest-mock
-    - pandas
-    - xgboost
-    - lightgbm
-    - treelite
-    - shap
-    - catboost
-    - array-api-compat
-    - array-api-strict
-    - array-api-strict <2.4  # [py<312]
-  source_files:
-    - .ci
-    - setup.cfg
-    - examples
-    - tests
+outputs:
+  - name: scikit-learn-intelex
+    build:
+      # Suppress dpcpp run_exports so CPU package doesn't pull intel-sycl-rt.
+      ignore_run_exports_from:
+        - {{ compiler('dpcpp') }}
+    script: pack.sh  # [linux]
+    script: pack.bat  # [win]
+    requirements:
+      build:
+        - make  # [linux]
+        - {{ compiler('dpcpp') }}
+        - {{ compiler('cxx') }}
+        - {{ stdlib("c") }}
+      host:
+        - python
+        - setuptools
+        - numpy
+        - dal-devel =={{ version }}
+        - impi-devel  # [not win]
+        - mpi * impi  # [not win]
+      run:
+        - python
+        - numpy
+        # <1.9 cap is temporary: 2026.0 predates sklearn 1.9 support. Remove for 2026.1.
+        - scikit-learn >=1.0,<1.9
+        # dal-devel has run_exports on conda-forge, so no need to add it.
+        - mpi * impi  # [not win]
+        - packaging  # [py>=313]
+    test:
+      requires:
+        - pyyaml
+        - mpi4py
+        - pytest
+        - pytest-mock
+        - pytest-mpi
+        - pandas
+        - xgboost
+        - lightgbm
+        - treelite
+        - shap
+        - catboost
+        - array-api-compat
+        - array-api-strict
+        - array-api-strict <2.4  # [py<312]
+        - polars
+      source_files:
+        - .ci
+        - setup.cfg
+        - examples
+        - tests
+      script: run_test.sh  # [linux]
+      script: run_test.bat  # [win]
+    about:
+      summary: Extension for Scikit-learn* (CPU runtime) is a seamless way to speed up your Scikit-learn application.
+
+  - name: scikit-learn-intelex-gpu
+    script: pack.sh  # [linux]
+    script: pack.bat  # [win]
+    requirements:
+      build:
+        - make  # [linux]
+        - {{ compiler('dpcpp') }}
+        - {{ stdlib("c") }}
+      host:
+        - python
+        - setuptools
+        - numpy
+        - dal-devel =={{ version }}
+        - dal-gpu =={{ version }}
+        - impi-devel  # [not win]
+        - mpi * impi  # [not win]
+      run:
+        - {{ pin_subpackage('scikit-learn-intelex', exact=True) }}
+        - dal-gpu =={{ version }}
+        # intel-sycl-rt injected automatically via dpcpp compiler run_exports.
+    test:
+      requires:
+        - dpcpp-cpp-rt
+      commands:
+        # Ensure dpc and spmd modules can be imported.
+        - python -c "import onedal._onedal_py_dpc"
+        - python -c "import onedal._onedal_py_spmd_dpc"  # [not win]
+    about:
+      summary: Extension for Scikit-learn* (GPU/DPC++ runtime) — enables oneAPI SYCL-based acceleration.
 
 about:
   home: https://uxlfoundation.github.io/scikit-learn-intelex

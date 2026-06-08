@@ -64,6 +64,12 @@ function generate_pytest_args {
 
 PYTEST_CONFIG="-c ${sklex_root}/setup.cfg"
 
+# CPU package must not contain the DPC backend (split into scikit-learn-intelex-gpu).
+# Feedstock-only check: omitted in the sklearnex repo where run_test.sh is shared
+# with build-and-test-*.yml, which builds CPU+DPC together in one prefix.
+${PYTHON} -c "import onedal, os, glob; d = os.path.dirname(onedal.__file__); assert not glob.glob(os.path.join(d, '_onedal_py_dpc*')) and not glob.glob(os.path.join(d, '_onedal_py_spmd_dpc*')), 'DPC backend leaked into CPU package'"
+return_code=$(($return_code + $?))
+
 ${PYTHON} -c "from sklearnex import patch_sklearn; patch_sklearn()"
 return_code=$(($return_code + $?))
 

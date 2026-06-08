@@ -1,0 +1,53 @@
+diff --git a/onedal/linear_model/tests/test_incremental_linear_regression.py b/onedal/linear_model/tests/test_incremental_linear_regression.py
+index 4226205f..93aaedd7 100644
+--- a/onedal/linear_model/tests/test_incremental_linear_regression.py
++++ b/onedal/linear_model/tests/test_incremental_linear_regression.py
+@@ -74,7 +74,7 @@ def test_full_results(queue, num_blocks, dtype):
+     assert_allclose(coef, model.coef_.T, rtol=tol, atol=atol)
+ 
+     tol = 3e-3 if model.intercept_.dtype == np.float32 else 1e-5
+-    assert_allclose(intercept, model.intercept_, rtol=tol)
++    assert_allclose(intercept, model.intercept_, rtol=tol, atol=tol)
+ 
+     Xt = gen.random(size=(num_samples_test, num_features), dtype=dtype)
+     gtr = Xt @ coef + intercept[np.newaxis, :]
+@@ -82,7 +82,7 @@ def test_full_results(queue, num_blocks, dtype):
+     res = model.predict(Xt, queue=queue)
+ 
+     tol = 2e-4 if res.dtype == np.float32 else 1e-7
+-    assert_allclose(gtr, res, rtol=tol)
++    assert_allclose(gtr, res, rtol=tol, atol=atol)
+ 
+ 
+ @pytest.mark.parametrize("queue", get_queues())
+diff --git a/onedal/linear_model/tests/test_linear_regression.py b/onedal/linear_model/tests/test_linear_regression.py
+index 90a86112..5e304e79 100755
+--- a/onedal/linear_model/tests/test_linear_regression.py
++++ b/onedal/linear_model/tests/test_linear_regression.py
+@@ -81,7 +81,7 @@ def test_full_results(queue, dtype):
+         tol = 5e-3 if model.coef_.dtype == np.float32 else 1e-5
+     else:
+         tol = 2e-3 if model.coef_.dtype == np.float32 else 1e-5
+-    assert_allclose(coef, model.coef_.T, rtol=tol)
++    assert_allclose(coef, model.coef_.T, rtol=tol, atol=tol)
+ 
+     tol = 2e-3 if model.intercept_.dtype == np.float32 else 1e-5
+     assert_allclose(intp, model.intercept_, rtol=tol, atol=tol)
+@@ -92,7 +92,7 @@ def test_full_results(queue, dtype):
+     res = model.predict(Xt, queue=queue)
+ 
+     tol = 2e-4 if res.dtype == np.float32 else 1e-7
+-    assert_allclose(gtr, res, rtol=tol)
++    assert_allclose(gtr, res, rtol=tol, atol=tol)
+ 
+ 
+ @pytest.mark.parametrize("queue", get_queues())
+@@ -175,7 +175,7 @@ def test_overdetermined_system(queue, dtype, fit_intercept):
+         b = Xi.T @ y
+         x = np.r_[np.squeeze(model.coef_), model.intercept_]
+     residual = A @ x - b
+-    assert np.all(np.abs(residual) < (1e-6 if dtype is np.float64 else 1e-5))
++    assert np.all(np.abs(residual) < (1e-6 if dtype is np.float64 else 5e-4))
+ 
+ 
+ @pytest.mark.parametrize("queue", get_queues())

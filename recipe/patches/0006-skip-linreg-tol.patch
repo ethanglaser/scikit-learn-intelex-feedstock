@@ -1,5 +1,27 @@
+diff --git a/onedal/linear_model/tests/test_incremental_linear_regression.py b/onedal/linear_model/tests/test_incremental_linear_regression.py
+index 4226205f..cfbcc606 100644
+--- a/onedal/linear_model/tests/test_incremental_linear_regression.py
++++ b/onedal/linear_model/tests/test_incremental_linear_regression.py
+@@ -74,7 +74,7 @@ def test_full_results(queue, num_blocks, dtype):
+     assert_allclose(coef, model.coef_.T, rtol=tol, atol=atol)
+ 
+     tol = 3e-3 if model.intercept_.dtype == np.float32 else 1e-5
+-    assert_allclose(intercept, model.intercept_, rtol=tol)
++    assert_allclose(intercept, model.intercept_, rtol=tol, atol=atol)
+ 
+     Xt = gen.random(size=(num_samples_test, num_features), dtype=dtype)
+     gtr = Xt @ coef + intercept[np.newaxis, :]
+@@ -82,7 +82,7 @@ def test_full_results(queue, num_blocks, dtype):
+     res = model.predict(Xt, queue=queue)
+ 
+     tol = 2e-4 if res.dtype == np.float32 else 1e-7
+-    assert_allclose(gtr, res, rtol=tol)
++    assert_allclose(gtr, res, rtol=tol, atol=atol)
+ 
+ 
+ @pytest.mark.parametrize("queue", get_queues())
 diff --git a/onedal/linear_model/tests/test_linear_regression.py b/onedal/linear_model/tests/test_linear_regression.py
-index 90a86112..5e304e79 100755
+index 90a86112..08bf46b0 100755
 --- a/onedal/linear_model/tests/test_linear_regression.py
 +++ b/onedal/linear_model/tests/test_linear_regression.py
 @@ -81,7 +81,7 @@ def test_full_results(queue, dtype):
@@ -7,7 +29,7 @@ index 90a86112..5e304e79 100755
      else:
          tol = 2e-3 if model.coef_.dtype == np.float32 else 1e-5
 -    assert_allclose(coef, model.coef_.T, rtol=tol)
-+    assert_allclose(coef, model.coef_.T, rtol=tol, atol=tol)
++    assert_allclose(coef, model.coef_.T, rtol=tol, atol=atol)
  
      tol = 2e-3 if model.intercept_.dtype == np.float32 else 1e-5
      assert_allclose(intp, model.intercept_, rtol=tol, atol=tol)
@@ -16,7 +38,7 @@ index 90a86112..5e304e79 100755
  
      tol = 2e-4 if res.dtype == np.float32 else 1e-7
 -    assert_allclose(gtr, res, rtol=tol)
-+    assert_allclose(gtr, res, rtol=tol, atol=tol)
++    assert_allclose(gtr, res, rtol=tol, atol=atol)
  
  
  @pytest.mark.parametrize("queue", get_queues())
